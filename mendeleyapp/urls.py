@@ -10,4 +10,7 @@ urlpatterns = [
 
     url(r'^admin/', include(admin.site.urls)),
     url(r'^firstViewUrl/', firstView),
+    url(r'^mendeleyRedirect/', mendeleyRedirect),
+    url(r'^callMendeley/', callMendeley),
+
 ]
