@@ -1,3 +1,4 @@
+
 Dependencies : 
 
 pip install virtualenv
@@ -20,3 +21,5 @@ cd <project_name>
 
 python manage.py startapp <app_name>
 
+# mendeleyRepo
+Mendeley API
