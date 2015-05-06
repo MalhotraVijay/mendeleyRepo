@@ -12,5 +12,7 @@ urlpatterns = [
     url(r'^firstViewUrl/', firstView),
     url(r'^mendeleyRedirect/', mendeleyRedirect),
     url(r'^callMendeley/', callMendeley),
+    url(r'^getMendeleyDocs/', getMendeleyDocs),
+    url(r'^createMendeleyDoc/', createMendeleyDocument),
 
 ]

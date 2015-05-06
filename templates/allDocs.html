@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Mendeley Python Example</title>
+</head>
+<body>
+<a href="/createMendeleyDoc">createDocument</a>
+<h1>{{name}}'s documents</h1>
+
+<table>
+    {% for doc in docs %}
+    <tr>
+        <td><a href="documents/{{doc.id}}">{{doc.title}}</a></td>
+    
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+
+
+</body>
+</html>
