@@ -11,7 +11,7 @@
 <table>
     {% for doc in docs %}
     <tr>
-        <td><a href="documents/{{doc.id}}">{{doc.title}}</a></td>
+        <td><a href="/documents?docid={{doc.id}}">{{doc.title}}</a></td>
     
     </tr>
     {% endfor %}

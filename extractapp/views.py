@@ -24,45 +24,51 @@ MendeleyInstance = MendeleyStructure()
 print MendeleyInstance
 
 
-def firstView(request):
-    return HttpResponse('first view response')
-
-
 
 
 def mendeleyRedirect(request):
 
-    state = MendeleyInstance.getSessionState()
+    response = {'error' : 'Authentication required to save the document'}
+    try:
+        
+        state = MendeleyInstance.getSessionState()
+        mendeley  = MendeleyInstance.getMendeleyObject()
+        print state
 
-    mendeley  = MendeleyInstance.getMendeleyObject()
-    print state
+        auth = mendeley.start_authorization_code_flow(state=state)
+        print request.get_full_path()
+
+        current_url = request.get_full_path()
+        current_url = 'http://localhost:8000'+current_url
+
+        auth_response = auth.authenticate(current_url)
+        MendeleyInstance.setToken(auth_response.token)
+        print auth_response.token
+
+    except:
+        response = {'error' : 'Authentication required to save the document'}
+        return HttpResponse(current_url)
+
+    return render_to_response('close_window.html')
+        
     
-    auth = mendeley.start_authorization_code_flow(state=state)
-
-    print request.get_full_path()
-    
-    current_url = request.get_full_path()
-
-    current_url = 'http://localhost:8000'+current_url
-
-    mendeley_session = auth.authenticate(current_url)
-
-    MendeleyInstance.setToken(mendeley_session.token)
-    
-    print mendeley_session.token
-    
-    return HttpResponse(current_url)
 
 
 def createMendeleyDocument(request):
 
-    mendeley_session = returnMendeleySession()
+    response = {'error' : 'Authentication required to save the document'}
+    try:
+        mendeley_session = returnMendeleySession()
 
-    title = request.GET.get('title','New title') 
+        title = request.GET.get('title','New title') 
     
-    doc = mendeley_session.documents.create(title=title, type='journal')
-    print doc.id
-    return HttpResponse('Document Created %s' % doc.id)
+        doc = mendeley_session.documents.create(title=title, type='journal')
+        print doc.id
+
+        response = {'success' : {'documentId' : doc.id, 'title' : doc.title }}
+    except:
+        response = {'error' : 'Authentication required to save the document'}
+    return HttpResponse(json.dumps(response))
 
 
 def getMendeleyDocs(request):
@@ -75,30 +81,32 @@ def getMendeleyDocs(request):
     
 
 
+def getSingleDocument(request):
+
+    mendeley_session = returnMendeleySession()
+    document_id = request.GET.get('docid','29a7bb5d-36b1-3e22-a6c2-707359098ad7')
+
+    print document_id
+    
+    doc = mendeley_session.documents.get(document_id)
+
+    try:
+        print 'dict', doc.__dict__
+        
+    except :
+        pass
 
 
+     
+    return render_to_response('singleDoc.html', {'doc' : doc})
 
-def renew_token(access_token,refresh_token):
-    client_auth = requests.auth.HTTPBasicAuth(CLIENT_ID, CLIENT_SECRET)
-    headers = {"Authorization": "bearer " + access_token}
-    post_data = {"grant_type": "refresh_token","refresh_token": refresh_token}
-    response = requests.post(TOKEN_URL,
-                             auth=client_auth,
-                             data=post_data)
-    token_json = response.json()
-    return token_json["access_token"], token_json["refresh_token"]
 
 
 
 #method to invoke authorization for mendeley
 def callMendeley(request):
-    login_url = MendeleyInstance.authorizeMendeley()
-
-    auth = MendeleyInstance.getAuthObject()
-
-    MendeleyInstance.setSessionState(auth.state)
-    request.session['state'] = auth.state
     
+    login_url = authenticateMendeley()
     print 'login_url', login_url
 
     return render_to_response('home.html',{'login_url' : login_url})
@@ -110,3 +118,15 @@ def returnMendeleySession():
     mendeley = MendeleyInstance.getMendeleyObject()
     return MendeleySession(mendeley, MendeleyInstance.getToken())
 
+
+
+
+def authenticateMendeley():
+    
+    login_url = MendeleyInstance.authorizeMendeley()
+    auth = MendeleyInstance.getAuthObject()
+    MendeleyInstance.setSessionState(auth.state)
+    
+    print 'login_url', login_url
+    return login_url
+    

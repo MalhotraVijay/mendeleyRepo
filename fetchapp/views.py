@@ -9,6 +9,9 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 
 
+from extractapp.views import *
+
+
 # Create your views here.
 
 
@@ -127,8 +130,19 @@ def fetchDataFromWorldcat(request):
     print "Publisher:" + publisher
     print "Url:" + link
 
-    return HttpResponse(json.dumps({'title' : title, 'type' : doc_type
-        }))
+    document = {
+        'title' : title,
+        'doc_type' : doc_type,
+        'year' : year,
+        'pages' : pages,
+        'accessed' : accessed
+        }
+        
+    #get the login url from the autheticate mendeley function
+    login_url = authenticateMendeley()
+        
+    return HttpResponse(json.dumps({'document' : document,
+                                    'login_url': login_url}))
 
 
 
