@@ -64,6 +64,18 @@
 		type: "GET",
 		success : function(response){
 		    console.log(response);
+		    var responseJson = JSON.parse(response);
+		    window.response = response;
+		    if(responseJson.success){
+			var documentId = responseJson.success.documentId;
+			var title = responseJson.success.title;
+			var html = "Document saved<br> Title: " + title + "<br>DocumentId: " + documentId;
+			$('#response-message').html(html);
+		    }else{
+			$('#response-message').html(responseJson.error);
+		    }
+		    
+		    
 		},
 		failure : function(response){
 		    
