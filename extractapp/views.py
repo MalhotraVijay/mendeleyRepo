@@ -28,78 +28,94 @@ print MendeleyInstance
 
 def mendeleyRedirect(request):
 
-    response = {'error' : 'Authentication required to save the document'}
-    try:
-        
-        state = MendeleyInstance.getSessionState()
-        mendeley  = MendeleyInstance.getMendeleyObject()
-        print state
-
-        auth = mendeley.start_authorization_code_flow(state=state)
-        print request.get_full_path()
-
-        current_url = request.get_full_path()
-        current_url = 'http://localhost:8000'+current_url
-
-        auth_response = auth.authenticate(current_url)
-        MendeleyInstance.setToken(auth_response.token)
-        print auth_response.token
-
-    except:
+    if(not checkDjangoSession(request.session)):
         response = {'error' : 'Authentication required to save the document'}
-        return HttpResponse(current_url)
+        try:
 
-    return render_to_response('close_window.html')
-        
-    
+            state = MendeleyInstance.getSessionState()
+            mendeley  = MendeleyInstance.getMendeleyObject()
+            #print state
+
+            auth = mendeley.start_authorization_code_flow(state=state)
+            #print request.get_full_path()
+
+            current_url = request.get_full_path()
+            current_url = 'http://localhost:8000'+current_url
+
+            auth_response = auth.authenticate(current_url)
+            MendeleyInstance.setToken(auth_response.token)
+            print 'auth token: ', auth_response.token
+            request.session['thisSession'] = True
+        except:
+            response = {'error' : 'Authentication required to save the document'}
+            return HttpResponse(current_url)
+
+        return render_to_response('close_window.html')
+    else:
+        response = {'error' : 'Already authenticated'}
+        return HttpResponse(json.dumps(response))
 
 
 def createMendeleyDocument(request):
-
-    response = {'error' : 'Authentication required to save the document'}
-    try:
-        mendeley_session = returnMendeleySession()
-
-        title = request.GET.get('title','New title') 
     
-        doc = mendeley_session.documents.create(title=title, type='journal')
-        print doc.id
-
-        response = {'success' : {'documentId' : doc.id, 'title' : doc.title }}
-    except:
+    if(checkDjangoSession(request.session)):
         response = {'error' : 'Authentication required to save the document'}
-    return HttpResponse(json.dumps(response))
+        try:
+            mendeley_session = returnMendeleySession()
 
+            title = request.GET.get('title','New title') 
+
+            doc = mendeley_session.documents.create(title=title, type='journal')
+            print doc.id
+
+            response = {'success' : {'documentId' : doc.id, 'title' : doc.title }}
+        except:
+            response = {'error' : 'Authentication required to save the document'}
+        return HttpResponse(json.dumps(response))
+
+    else:
+        response = {'error' : 'Authentication required to save the document'}
+        return HttpResponse(json.dumps(response))
 
 def getMendeleyDocs(request):
 
-    mendeley_session = returnMendeleySession()
-    name = mendeley_session.profiles.me.display_name
-    docs = mendeley_session.documents.list(view='client').items
+    if(checkDjangoSession(request.session)):
+        try:
+            mendeley_session = returnMendeleySession()
+            name = mendeley_session.profiles.me.display_name
+            docs = mendeley_session.documents.list(view='client').items
 
-    return render_to_response('allDocs.html', {'name' : name , 'docs' : docs})
+            return render_to_response('allDocs.html', {'name' : name , 'docs' : docs})
+        except:
+            response = {'error' : 'Authentication required to save the document'}
+            return HttpResponse(json.dumps(response))
+
+    response = {'error' : 'Django Session expired'}
+    return HttpResponse(json.dumps(response))
     
 
 
 def getSingleDocument(request):
 
-    mendeley_session = returnMendeleySession()
-    document_id = request.GET.get('docid','29a7bb5d-36b1-3e22-a6c2-707359098ad7')
+    if(checkDjangoSession(request.session)):
+        mendeley_session = returnMendeleySession()
+        document_id = request.GET.get('docid','29a7bb5d-36b1-3e22-a6c2-707359098ad7')
 
-    print document_id
+        print document_id
+
+        doc = mendeley_session.documents.get(document_id)
+
+        try:
+            print 'dict', doc.__dict__
+
+        except :
+            pass
+
+        return render_to_response('singleDoc.html', {'doc' : doc})
+
+    response = {'error' : 'Django Session expired'}
+    return HttpResponse(json.dumps(response))
     
-    doc = mendeley_session.documents.get(document_id)
-
-    try:
-        print 'dict', doc.__dict__
-        
-    except :
-        pass
-
-
-     
-    return render_to_response('singleDoc.html', {'doc' : doc})
-
 
 
 
@@ -129,4 +145,14 @@ def authenticateMendeley():
     
     print 'login_url', login_url
     return login_url
+    
+
+
+def checkDjangoSession(session):
+    try:
+        if session['thisSession'] and session['thisSession'] == True:
+            return True
+    except:
+        return False
+    return False
     
