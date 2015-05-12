@@ -87,7 +87,7 @@ def getMendeleyDocs(request):
 
             return render_to_response('allDocs.html', {'name' : name , 'docs' : docs})
         except:
-            response = {'error' : 'Authentication required to save the document'}
+            response = {'error' : 'Authentication required to access this endpoint'}
             return HttpResponse(json.dumps(response))
 
     response = {'error' : 'Django Session expired'}
@@ -98,21 +98,24 @@ def getMendeleyDocs(request):
 def getSingleDocument(request):
 
     if(checkDjangoSession(request.session)):
-        mendeley_session = returnMendeleySession()
-        document_id = request.GET.get('docid','29a7bb5d-36b1-3e22-a6c2-707359098ad7')
-
-        print document_id
-
-        doc = mendeley_session.documents.get(document_id)
-
         try:
-            print 'dict', doc.__dict__
+            mendeley_session = returnMendeleySession()
+            document_id = request.GET.get('docid','29a7bb5d-36b1-3e22-a6c2-707359098ad7')
 
-        except :
-            pass
+            print document_id
 
-        return render_to_response('singleDoc.html', {'doc' : doc})
+            doc = mendeley_session.documents.get(document_id)
 
+            try:
+                print 'dict', doc.__dict__
+
+            except :
+                pass
+
+            return render_to_response('singleDoc.html', {'doc' : doc})
+        except:
+            response = {'error' : 'Authentication required to access this endpoint'}
+            return HttpResponse(json.dumps(response))
     response = {'error' : 'Django Session expired'}
     return HttpResponse(json.dumps(response))
     
@@ -149,10 +152,24 @@ def authenticateMendeley():
 
 
 def checkDjangoSession(session):
+
+    print session.__dict__
     try:
+        
         if session['thisSession'] and session['thisSession'] == True:
+            print 'session key set:', session['thisSession']
             return True
     except:
         return False
     return False
+
+def logout(request):
+    session = request.session
+    try:
+        if session['thisSession'] and session['thisSession'] == True:
+            del request.session['thisSession']
+            return HttpResponse(json.dumps({'message':'Successfully Logged out of the system'}))
+    except:
+        return HttpResponse(json.dumps({'message':'Already Logged out of the system'}))
+    return HttpResponse(json.dumps({'message':'Already Logged out of the system'}))
     

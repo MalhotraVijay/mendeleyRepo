@@ -12,6 +12,8 @@ urlpatterns = [
 
     #url(r'^admin/', include(admin.site.urls)),
 
+    url(r'^logout/', logout),
+    
     #Mendeley Urls
     
     url(r'^callMendeley/', callMendeley),

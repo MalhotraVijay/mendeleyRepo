@@ -26,21 +26,28 @@
 		success : function(response){
 		    console.log(response);
 		    var response = JSON.parse(response);
-		    console.log(response.document, response.login_url);
 		    
-		    functions.setCookie('document',JSON.stringify(response.document));
-		    
-		    console.log(functions.getCookie('document'));
-		    var auth_window = window.open(response.login_url,'newwindow','height=400,width=600' );
-		    
-		    var checkForWindow = window.setInterval(function(){
-			console.log('checking for window close: ', auth_window.closed);
-			if(auth_window.closed){
-			    clearInterval(checkForWindow);
-			    parent.saveMendeleyDocument();
-			}else{}
-		    },1000);
+		    if(response.message != undefined){
 
+			console.log('Auth done already, calling save', response.document);
+			functions.setCookie('document',JSON.stringify(response.document));
+			parent.saveMendeleyDocument();
+		    }else{
+			console.log(response.document, response.login_url);
+			
+			functions.setCookie('document',JSON.stringify(response.document));
+			
+			console.log(functions.getCookie('document'));
+			var auth_window = window.open(response.login_url,'newwindow','height=400,width=600' );
+			
+			var checkForWindow = window.setInterval(function(){
+			    console.log('checking for window close: ', auth_window.closed);
+			    if(auth_window.closed){
+				clearInterval(checkForWindow);
+				parent.saveMendeleyDocument();
+			    }else{}
+			},1000);
+		    }
 
 		},
 		faliure : function(response){

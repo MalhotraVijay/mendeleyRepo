@@ -17,8 +17,10 @@ from extractapp.views import *
 
 def fetchDataFromWorldcat(request):
 
-    documentId = request.GET.get('documentId','904069807')
     
+    
+    documentId = request.GET.get('documentId','904069807')
+
     data = urllib2.urlopen('http://www.worldcat.org/webservices/catalog/content/'+documentId+'?wskey=xBo82kDJHO1YFvNihVRsD2YXIhhvJsnEAwN8d7GuygBIXRsiNRSgYeNeFI3XKvCdrOkMliqUHbjO5vcK')
 
     result = data.read()
@@ -137,13 +139,16 @@ def fetchDataFromWorldcat(request):
         'pages' : pages,
         'accessed' : accessed
         }
-        
-    #get the login url from the autheticate mendeley function
-    login_url = authenticateMendeley()
-        
-    return HttpResponse(json.dumps({'document' : document,
-                                    'login_url': login_url}))
+
+    if(not checkDjangoSession(request.session)):
+        #get the login url from the autheticate mendeley function
+        login_url = authenticateMendeley()
+        return HttpResponse(json.dumps({'document' : document,
+                                        'login_url': login_url}))
+    else:
+        return HttpResponse(json.dumps({'message' : 'Mendeley Authentication done successfully',
+                                        'document':document}))
+    
 
 
-
-
+    
