@@ -42,10 +42,14 @@ def mendeleyRedirect(request):
             current_url = request.get_full_path()
             current_url = 'http://localhost:8000'+current_url
 
+            auth_response = ""
+            
             auth_response = auth.authenticate(current_url)
             MendeleyInstance.setToken(auth_response.token)
             print 'auth token: ', auth_response.token
-            request.session['thisSession'] = True
+            
+            if auth_response != "":
+                request.session['thisSession'] = True
         except:
             response = {'error' : 'Authentication required to save the document'}
             return HttpResponse(current_url)
