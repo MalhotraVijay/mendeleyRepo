@@ -30,14 +30,14 @@
 		    if(response.message != undefined){
 
 			console.log('Auth done already, calling save', response.document);
-			functions.setCookie('document',JSON.stringify(response.document));
+			functions.saveLocal('document',JSON.stringify(response.document));
 			parent.saveMendeleyDocument();
 		    }else{
 			console.log(response.document, response.login_url);
 			
-			functions.setCookie('document',JSON.stringify(response.document));
+			functions.saveLocal('document',JSON.stringify(response.document));
 			
-			console.log(functions.getCookie('document'));
+			console.log(functions.getLocal('document'));
 			var auth_window = window.open(response.login_url,'newwindow','height=400,width=600' );
 			
 			var checkForWindow = window.setInterval(function(){
@@ -61,14 +61,18 @@
 	this.saveMendeleyDocument = function(){
 	    
 
-	    var document = JSON.parse(functions.getCookie('document'));
+	    var document = JSON.parse(functions.getLocal('document'));
 	    
 	    console.log('calling mendeley save on :', document);	    
-	    var url = 'http://localhost:8000/createMendeleyDoc'+'?title='+document.title;
+	    var url = 'http://localhost:8000/createMendeleyDoc/';
+	   /* var url = 'http://localhost:8000/createMendeleyDoc'+'?title='+document.title+'&type='+document.type+'&year='+document.year+'&pages='+document.pages+'&accessed='+document.accessed+'&authors='+document.authors+'&abstract='+document.abstract+'&tags='+document.tags+'&keywords='+document.keywords+'&city='+document.city+'&publisher='+document.publisher+'&url='+document.link;
+*/
+	   
 
 	    $.ajax({
 		url: url,
-		type: "GET",
+		type: "POST",
+		data :  document ,
 		success : function(response){
 		    console.log(response);
 		    var responseJson = JSON.parse(response);
@@ -109,10 +113,19 @@
         setCookie: function (key, value, c_extra) {
             if (!c_extra) c_extra = "Expires=Fri, 15-Jan-2099 21:47:38 GMT; Path=/";
             document.cookie = key + '=' + value + '; ' + c_extra;
-        }
+        },
+
+	saveLocal: function(key,value){
+	    localStorage.setItem(key, value);
+	},
+
+	getLocal: function(key){
+	    return localStorage.getItem(key);
+	}
 
 	};
 
+	this.functions = functions;
 	var attachEvents = function(){
 
 	    console.log('Attaching the events');
@@ -130,6 +143,38 @@
 
 	this.initApp = function(){
 	    attachEvents();
+	        function getCookie(name) {
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie != '') {
+			var cookies = document.cookie.split(';');
+			for (var i = 0; i < cookies.length; i++) {
+			    var cookie = jQuery.trim(cookies[i]);
+			    // Does this cookie string begin with the name we want?
+			    if (cookie.substring(0, name.length + 1) == (name + '=')) {
+				cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+				break;
+			    }
+			}
+		    }
+		    return cookieValue;
+		}
+	    var csrftoken = getCookie('csrftoken');
+	    
+	    //alert(csrftoken);
+	    //make AJAX call post settings
+	    function csrfSafeMethod(method) {
+		// these HTTP methods do not require CSRF protection
+		return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+	    }
+	    
+	    $.ajaxSetup({
+		crossDomain: false, // obviates need for sameOrigin test
+		beforeSend: function(xhr, settings) {
+		    if (!csrfSafeMethod(settings.type)) {
+			xhr.setRequestHeader("X-CSRFToken", csrftoken);
+		    }
+		}
+	    });
 	};
 
     };

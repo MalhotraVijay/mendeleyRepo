@@ -137,7 +137,14 @@ def fetchDataFromWorldcat(request):
         'doc_type' : doc_type,
         'year' : year,
         'pages' : pages,
-        'accessed' : accessed
+        'accessed' : accessed,
+        'authors' : authors,
+        'abstract' : abstract,
+        'tags' : str(tags),
+        'keywords' : str(keywords),
+        'city' : city,
+        'publisher' : publisher,
+        'url' : link
         }
 
     if(not checkDjangoSession(request.session)):

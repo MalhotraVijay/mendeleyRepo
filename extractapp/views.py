@@ -64,17 +64,26 @@ def createMendeleyDocument(request):
     
     if(checkDjangoSession(request.session)):
         response = {'error' : 'Authentication required to save the document'}
-        try:
-            mendeley_session = returnMendeleySession()
+        #try:
 
-            title = request.GET.get('title','New title') 
+        mendeley_session = returnMendeleySession()
+        print 'in the tyr blocl'
 
-            doc = mendeley_session.documents.create(title=title, type='journal')
-            print doc.id
+        print request.POST
+        title =  request.POST.get('title')
+        city = request.POST.get('city')
+        doc_type = request.POST.get('doc_type')
 
-            response = {'success' : {'documentId' : doc.id, 'title' : doc.title }}
-        except:
-            response = {'error' : 'Authentication required to save the document'}
+        year = request.POST.get('year')
+        authors = str(request.POST.get('authors'))
+        print title, city, doc_type
+        
+        doc = mendeley_session.documents.create(title=title, type= 'Journal', year = year)
+        print doc.id
+        #response = {'error' : 'ductomc'}
+        response = {'success' : {'documentId' : doc.id, 'title' : doc.title }}
+        #except:
+        #    response = {'error' : 'Authentication required to save the document'}
         return HttpResponse(json.dumps(response))
 
     else:
