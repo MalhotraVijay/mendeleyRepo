@@ -12,6 +12,9 @@ from extractapp.models import *
 
 from django.core.urlresolvers import resolve
 
+from mendeley.models.common import Person
+
+
 CLIENT_ID = '1656'
 CLIENT_SECRET = 'LA5Ns1k9bJzfaWZ8'
 TOKEN_URL = 'https://api-oauth2.mendeley.com/oauth/token'
@@ -69,22 +72,43 @@ def createMendeleyDocument(request):
         mendeley_session = returnMendeleySession()
         print 'in the tyr blocl'
 
-        print request.POST
-	document = json.loads(request.POST.get('document'))
-	print document
+        #print request.POST
+        document = json.loads(request.POST.get('document'))
+        print document
         title =  document.get('title')
         city = document.get('city')
         doc_type = document.get('doc_type')
 
         year = document.get('year')
-	publisher =  document.get('publisher')
+        pages = document.get('pages')
+        publisher =  document.get('publisher')
         authors =  document.get('authors')
-	abstract = document.get('abstract')
-	tags = document.get('tags')
-	keywords =  document.get('keywords')
+        abstract = document.get('abstract')
+        tags = document.get('tags')
+        keywords =  document.get('keywords')
         print authors,keywords
 
-        doc = mendeley_session.documents.create(title=title, type= 'Working_Paper', year = year, city = city, publisher = publisher, abstract = abstract, authors = authors)
+        newauthors = []
+        for author in authors:
+            name = author.split(',')
+            newauthors.append(Person.create(name[1],name[0])) #pattern Person.create(first_name,last_name)
+
+        print newauthors
+
+        newtags = []
+
+        for tag in tags:
+            t = ""
+            try:
+                t = tag.split(';')[0]
+            except:
+                t = tag
+            if(len(t)<50):
+                newtags.append(t)
+
+        print newtags
+            
+        doc = mendeley_session.documents.create(title=title, type= 'Working_Paper', year = year, city = city, publisher = publisher, abstract = abstract, keywords = keywords, tags = newtags, authors = newauthors, pages = pages)
         print doc.id
         #response = {'error' : 'ductomc'}
         response = {'success' : {'documentId' : doc.id, 'title' : doc.title }}

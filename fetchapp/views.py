@@ -71,7 +71,7 @@ def fetchDataFromWorldcat(request):
                 elif (dict1[key] == "651"):
                     for subfield in datafield:
                         #print subfield.text
-                        keywords.append(subfield.text)
+                        keywords = (subfield.text).split(';')
                 elif (dict1[key] == "520"):
                     # print "520:"
                     for subfield in datafield:
