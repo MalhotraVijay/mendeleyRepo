@@ -70,15 +70,21 @@ def createMendeleyDocument(request):
         print 'in the tyr blocl'
 
         print request.POST
-        title =  request.POST.get('title')
-        city = request.POST.get('city')
-        doc_type = request.POST.get('doc_type')
+	document = json.loads(request.POST.get('document'))
+	print document
+        title =  document.get('title')
+        city = document.get('city')
+        doc_type = document.get('doc_type')
 
-        year = request.POST.get('year')
-        authors = str(request.POST.get('authors'))
-        print title, city, doc_type
-        
-        doc = mendeley_session.documents.create(title=title, type= 'Journal', year = year)
+        year = document.get('year')
+	publisher =  document.get('publisher')
+        authors =  document.get('authors')
+	abstract = document.get('abstract')
+	tags = document.get('tags')
+	keywords =  document.get('keywords')
+        print authors,keywords
+
+        doc = mendeley_session.documents.create(title=title, type= 'Working_Paper', year = year, city = city, publisher = publisher, abstract = abstract, authors = authors)
         print doc.id
         #response = {'error' : 'ductomc'}
         response = {'success' : {'documentId' : doc.id, 'title' : doc.title }}

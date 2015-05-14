@@ -63,7 +63,7 @@ def fetchDataFromWorldcat(request):
                         for key in dict2.keys():
                             if key == "code":
                                 if(dict2[key] == "a"):
-                                    authors = subfield.text
+                                    authors = (subfield.text).split(';')
                 elif (dict1[key] == "655"):
                     # print "Type :"
                     for subfield in datafield:
@@ -118,10 +118,10 @@ def fetchDataFromWorldcat(request):
     publisher = publisher_array[0]
     pages = (page_array[0])
     accessed = str(datetime.now())
-
+    
     print "Title:" + title
     print "Type:" + doc_type
-    print "Authors:" + authors
+    print "Authors:",authors
     print "Year:" + year
     print "Pages:" + pages
     print "Abstract:" + abstract
@@ -140,8 +140,8 @@ def fetchDataFromWorldcat(request):
         'accessed' : accessed,
         'authors' : authors,
         'abstract' : abstract,
-        'tags' : str(tags),
-        'keywords' : str(keywords),
+        'tags' : tags,
+        'keywords' : keywords,
         'city' : city,
         'publisher' : publisher,
         'url' : link

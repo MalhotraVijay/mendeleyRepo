@@ -72,7 +72,7 @@
 	    $.ajax({
 		url: url,
 		type: "POST",
-		data :  document ,
+		data : {document : JSON.stringify(document)} ,
 		success : function(response){
 		    console.log(response);
 		    var responseJson = JSON.parse(response);
